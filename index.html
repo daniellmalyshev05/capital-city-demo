@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Капитал Сити</title>
+    <style>
+        /* --- ШАГ 1: ПОДКЛЮЧАЕМ ФИРМЕННЫЕ ШРИФТЫ --- */
+        @font-face {
+            font-family: 'Halvar Breitschrift';
+            /* ВАЖНО: Убедитесь, что путь и имя файла верные! */
+            src: url('fonts/HalvarBreit-Bold.ttf') format('ttf'); 
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Gazprombank Sans';
+            /* ВАЖНО: Убедитесь, что путь и имя файла верные! */
+            src: url('fonts/GazprombankSans-Regular.ttf') format('ttf');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        /* --- ШАГ 2: УСТАНАВЛИВАЕМ ФОН И ШРИФТ ПО УМОЛЧАНИЮ --- */
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            /* Используем цвет "Тмин" (060698) из брендбука вместо черного */
+            background-color: #000000; 
+            font-family: 'Gazprombank Sans', Arial, sans-serif;
+        }
+
+        /* --- ШАГ 3: ЗАРАНЕЕ СТИЛИЗУЕМ ПОЛЕ ВВОДА --- */
+        #deposit-input {
+            display: none; /* Изначально скрыто */
+            position: absolute;
+            width: 300px;
+            height: 50px;
+            font-size: 32px;
+            text-align: center;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <!-- Эта часть остается без изменений. Она нужна для работы игры. -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+    
+    <input type="number" id="deposit-input" placeholder="Введите сумму">
+
+    <script src="game-data.js"></script>
+    <script src="map-layout.js"></script>
+    <script src="extra-buildings-data.js"></script>
+    <script src="ui-functions.js"></script>
+    <script src="quiz-data.js"></script> 
+    <script src="quests-data.js"></script>
+    <script src="achievements-data.js"></script>
+    <script src="effects.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

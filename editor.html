@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map Editor - Газпром Сити</title>
+    <style>
+        body, html { margin: 0; padding: 0; overflow: hidden; background-color: #333; }
+    </style>
+</head>
+<body>
+    <!-- Подключаем движок Phaser 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+
+    <script>
+    // --- 1. ГЛОБАЛЬНЫЕ НАСТРОЙКИ ---
+    const SCREEN_WIDTH = 1080;
+    const TILES_PER_ROW = 5;
+    const HORIZONTAL_PADDING = 30;
+    const TILE_SIZE = (SCREEN_WIDTH - (HORIZONTAL_PADDING * 2)) / TILES_PER_ROW;
+
+    // --- НОВОЕ: Списки инструментов для разной логики ---
+    const DECORATION_TOOLS = ['tree', 'fir_tree', 'bush', 'pond', 'flowers', 'bench', 'lamppost'];
+    const TALL_OBJECTS = ['tree', 'fir_tree', 'bush', 'bench', 'lamppost'];
+
+    const cityLayout = [ { type: 'road_v', gridPos: { x: 3.25, y: 1.25 } }, { type: 'road_v', gridPos: { x: 4.5, y: 1.25 } }, { type: 'road_v', gridPos: { x: 3.25, y: 1.5 } }, { type: 'road_v', gridPos: { x: 4.5, y: 1.5 } }, { type: 'road_h', gridPos: { x: 0, y: 1.75 } }, { type: 'road_h', gridPos: { x: 0.25, y: 1.75 } }, { type: 'road_h', gridPos: { x: 0.75, y: 1.75 } }, { type: 'road_h', gridPos: { x: 1, y: 1.75 } }, { type: 'road_h', gridPos: { x: 1.5, y: 1.75 } }, { type: 'road_h', gridPos: { x: 2, y: 1.75 } }, { type: 'road_h', gridPos: { x: 2.5, y: 1.75 } }, { type: 'road_h', gridPos: { x: 3, y: 1.75 } }, { type: 'road_h', gridPos: { x: 3.5, y: 1.75 } }, { type: 'road_h', gridPos: { x: 3.75, y: 1.75 } }, { type: 'road_h', gridPos: { x: 4.25, y: 1.75 } }, { type: 'road_h', gridPos: { x: 4.75, y: 1.75 } }, { type: 'road_h', gridPos: { x: 5, y: 1.75 } }, { type: 'slot', gridPos: { x: 0, y: 2 } }, { type: 'slot', gridPos: { x: 1, y: 2 } }, { type: 'road_v', gridPos: { x: 2.25, y: 2 } }, { type: 'road_v', gridPos: { x: 3.25, y: 2 } }, { type: 'road_v', gridPos: { x: 4.5, y: 2 } }, { type: 'road_v', gridPos: { x: 2.25, y: 2.5 } }, { type: 'road_v', gridPos: { x: 3.25, y: 2.5 } }, { type: 'road_v', gridPos: { x: 4.5, y: 2.5 } }, { type: 'road_v', gridPos: { x: 4.5, y: 2.75 } }, { type: 'road_v', gridPos: { x: 2.25, y: 3 } }, { type: 'road_v', gridPos: { x: 3.25, y: 3 } }, { type: 'road_h', gridPos: { x: 0, y: 3.25 } }, { type: 'road_h', gridPos: { x: 0.5, y: 3.25 } }, { type: 'road_h', gridPos: { x: 1, y: 3.25 } }, { type: 'road_h', gridPos: { x: 1.5, y: 3.25 } }, { type: 'road_h', gridPos: { x: 2, y: 3.25 } }, { type: 'road_h', gridPos: { x: 2.5, y: 3.25 } }, { type: 'road_h', gridPos: { x: 3, y: 3.25 } }, { type: 'road_h', gridPos: { x: 3.25, y: 3.25 } }, { type: 'road_h', gridPos: { x: 3.75, y: 3.25 } }, { type: 'road_h', gridPos: { x: 4.25, y: 3.25 } }, { type: 'road_v', gridPos: { x: 4.5, y: 3.25 } }, { type: 'road_h', gridPos: { x: 4.75, y: 3.25 } }, { type: 'road_h', gridPos: { x: 5, y: 3.25 } }, { type: 'road_v', gridPos: { x: 0, y: 3.5 } }, { type: 'road_v', gridPos: { x: 1.75, y: 3.5 } }, { type: 'road_v', gridPos: { x: 3.25, y: 3.5 } }, { type: 'road_v', gridPos: { x: 3.25, y: 3.75 } }, { type: 'road_v', gridPos: { x: 4.5, y: 3.75 } }, { type: 'road_v', gridPos: { x: 0, y: 4 } }, { type: 'road_v', gridPos: { x: 1.75, y: 4 } }, { type: 'slot', gridPos: { x: 2, y: 4 } }, { type: 'road_v', gridPos: { x: 3.25, y: 4 } }, { type: 'slot', gridPos: { x: 4, y: 4 } }, { type: 'road_v', gridPos: { x: 0, y: 4.5 } }, { type: 'road_v', gridPos: { x: 1.75, y: 4.5 } }, { type: 'road_v', gridPos: { x: 3.25, y: 4.5 } }, { type: 'road_v', gridPos: { x: 3.25, y: 4.75 } }, { type: 'road_v', gridPos: { x: 0, y: 5 } }, { type: 'road_v', gridPos: { x: 1.75, y: 5 } }, { type: 'road_v', gridPos: { x: 3.25, y: 5 } }, { type: 'road_h', gridPos: { x: 0, y: 5.25 } }, { type: 'road_h', gridPos: { x: 0.5, y: 5.25 } }, { type: 'road_h', gridPos: { x: 1, y: 5.25 } }, { type: 'road_h', gridPos: { x: 1.5, y: 5.25 } }, { type: 'road_h', gridPos: { x: 2, y: 5.25 } }, { type: 'road_h', gridPos: { x: 2.5, y: 5.25 } }, { type: 'road_h', gridPos: { x: 3, y: 5.25 } }, { type: 'road_h', gridPos: { x: 3.5, y: 5.25 } }, { type: 'road_h', gridPos: { x: 4, y: 5.25 } }, { type: 'road_h', gridPos: { x: 4.5, y: 5.25 } }, { type: 'road_h', gridPos: { x: 5, y: 5.25 } }, { type: 'road_v', gridPos: { x: 2.25, y: 5.5 } }, { type: 'road_v', gridPos: { x: 2.75, y: 5.5 } }, { type: 'road_h', gridPos: { x: 0, y: 5.75 } }, { type: 'road_h', gridPos: { x: 0.25, y: 5.75 } }, { type: 'road_h', gridPos: { x: 0.75, y: 5.75 } }, { type: 'road_h', gridPos: { x: 1, y: 5.75 } }, { type: 'road_h', gridPos: { x: 1.5, y: 5.75 } }, { type: 'road_h', gridPos: { x: 2, y: 5.75 } }, { type: 'road_h', gridPos: { x: 3, y: 5.75 } }, { type: 'road_h', gridPos: { x: 3.5, y: 5.75 } }, { type: 'road_h', gridPos: { x: 4, y: 5.75 } }, { type: 'road_h', gridPos: { x: 4.5, y: 5.75 } }, { type: 'road_h', gridPos: { x: 5, y: 5.75 } }, { type: 'road_v', gridPos: { x: 0.75, y: 6 } }, { type: 'slot', gridPos: { x: 1, y: 6 } }, { type: 'road_v', gridPos: { x: 2.25, y: 6 } }, { type: 'road_v', gridPos: { x: 2.75, y: 6 } }, { type: 'slot', gridPos: { x: 3, y: 6 } }, { type: 'road_v', gridPos: { x: 5, y: 6 } }, { type: 'road_v', gridPos: { x: 5, y: 6.25 } }, { type: 'road_v', gridPos: { x: 0.75, y: 6.5 } }, { type: 'road_v', gridPos: { x: 2.25, y: 6.5 } }, { type: 'road_v', gridPos: { x: 2.75, y: 6.5 } }, { type: 'road_v', gridPos: { x: 0.75, y: 6.75 } }, { type: 'road_v', gridPos: { x: 5, y: 6.75 } }, { type: 'road_h', gridPos: { x: 0, y: 7 } }, { type: 'road_h', gridPos: { x: 0.5, y: 7 } }, { type: 'road_v', gridPos: { x: 0.75, y: 7 } }, { type: 'road_v', gridPos: { x: 2.25, y: 7 } }, { type: 'road_v', gridPos: { x: 2.75, y: 7 } }, { type: 'road_v', gridPos: { x: 2.25, y: 7.25 } }, { type: 'road_v', gridPos: { x: 5, y: 7.25 } }, { type: 'road_v', gridPos: { x: 0.75, y: 7.5 } }, { type: 'road_v', gridPos: { x: 2.75, y: 7.5 } }, { type: 'road_v', gridPos: { x: 0.75, y: 7.75 } }, { type: 'road_v', gridPos: { x: 2.25, y: 7.75 } }, { type: 'road_v', gridPos: { x: 5, y: 7.75 } }, { type: 'road_h', gridPos: { x: 0, y: 8 } }, { type: 'road_h', gridPos: { x: 0.5, y: 8 } }, { type: 'road_h', gridPos: { x: 1, y: 8 } }, { type: 'road_h', gridPos: { x: 1.5, y: 8 } }, { type: 'road_h', gridPos: { x: 2, y: 8 } }, { type: 'road_v', gridPos: { x: 2.75, y: 8 } }, { type: 'road_h', gridPos: { x: 3, y: 8 } }, { type: 'road_h', gridPos: { x: 3.5, y: 8 } }, { type: 'road_h', gridPos: { x: 4, y: 8 } }, { type: 'road_h', gridPos: { x: 4.5, y: 8 } }, { type: 'road_h', gridPos: { x: 5, y: 8 } }, { type: 'road_v', gridPos: { x: 2.25, y: 8.25 } }, { type: 'road_v', gridPos: { x: 2.75, y: 8.25 } }, { type: 'road_h', gridPos: { x: 2.5, y: 8.5 } }, { type: 'road_v', gridPos: { x: 2.5, y: 8.75 } }, { type: 'road_v', gridPos: { x: 2.5, y: 9.25 } }, ];
+
+    // --- 2. 2D РЕДАКТОР КАРТЫ ---
+    class MapEditorScene extends Phaser.Scene {
+
+        constructor() {
+            super({ key: 'MapEditorScene' });
+            this.placedObjects = [];
+            this.activeTool = 'slot';
+            this.highlightedObject = null;
+        }
+
+        preload() {
+            // Загрузка всех ассетов
+            this.load.image('grass', 'assets/grass_tile.png');
+            this.load.image('slot', 'assets/slot_tile.png');
+            this.load.image('road_h', 'assets/road_h_tile.png');
+            this.load.image('road_v', 'assets/road_v_tile.png');
+            this.load.image('tree', 'assets/tree.png');
+            this.load.image('pond', 'assets/pond.png');
+            this.load.image('flowers', 'assets/flowers.png');
+            this.load.image('fir_tree', 'assets/fir_tree.png');
+            this.load.image('bush', 'assets/bush.png');
+            this.load.image('bench', 'assets/bench.png');
+            this.load.image('lamppost', 'assets/lamppost.png');
+        }
+
+        create() {
+            const worldWidth = SCREEN_WIDTH * 2;
+            const worldHeight = 1920 * 3;
+            this.add.tileSprite(0, 0, worldWidth, worldHeight, 'grass').setOrigin(0, 0).setDepth(-1);
+            this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+
+            this.ghostImage = this.add.image(0, 0, this.activeTool).setAlpha(0.7).setDepth(10000);
+            this.updateGhostOrigin();
+
+            this.loadInitialLayout();
+
+            this.input.on('pointerdown', (pointer) => {
+                if (pointer.middleButtonDown()) return;
+                if (pointer.leftButtonDown()) {
+                    const gridPos = this.screenToGrid(pointer.worldX, pointer.worldY);
+                    this.placeObject(gridPos, this.activeTool);
+                }
+            });
+
+            this.input.on('pointermove', (pointer) => {
+                const gridPos = this.screenToGrid(pointer.worldX, pointer.worldY);
+                const screenPos = this.gridToScreen(gridPos);
+                this.ghostImage.setPosition(screenPos.x, screenPos.y);
+
+                if (pointer.isDown && pointer.middleButtonDown()) {
+                    this.cameras.main.scrollX -= (pointer.x - pointer.prevPosition.x) / this.cameras.main.zoom;
+                    this.cameras.main.scrollY -= (pointer.y - pointer.prevPosition.y) / this.cameras.main.zoom;
+                }
+            });
+
+            this.input.keyboard.on('keydown-DELETE', () => {
+                if (this.highlightedObject) {
+                    this.removeObjectBySprite(this.highlightedObject);
+                    this.highlightedObject = null;
+                }
+            });
+
+            this.createUI();
+        }
+
+        loadInitialLayout() {
+            for (const obj of cityLayout) {
+                this.placeObject(obj.gridPos, obj.type);
+            }
+        }
+        
+        placeObject(gridPos, tool) {
+            const screenPos = this.gridToScreen(gridPos);
+            // Сначала создаем объект, чтобы получить его реальную высоту
+            const newObject = this.add.image(screenPos.x, screenPos.y, tool);
+
+            // ИСПРАВЛЕНО: Правильный расчет глубины
+            let depth = screenPos.y;
+            // Для высоких объектов глубину считаем по их "основанию" (нижнему краю)
+            if (TALL_OBJECTS.includes(tool)) {
+                depth = screenPos.y + newObject.height;
+            }
+            newObject.setDepth(depth).setInteractive();
+
+            if (tool === 'road_h' || tool === 'road_v') {
+                newObject.setOrigin(0.5, 0.5);
+            } else {
+                newObject.setOrigin(0, 0);
+            }
+
+            newObject.on('pointerover', () => { newObject.setTint(0xff8888); this.highlightedObject = newObject; });
+            newObject.on('pointerout', () => { newObject.clearTint(); if (this.highlightedObject === newObject) this.highlightedObject = null; });
+
+            this.placedObjects.push({ sprite: newObject, gridPos: gridPos, type: tool });
+        }
+
+        removeObjectBySprite(spriteToRemove) {
+            for (let i = this.placedObjects.length - 1; i >= 0; i--) {
+                if (this.placedObjects[i].sprite === spriteToRemove) {
+                    this.placedObjects[i].sprite.destroy();
+                    this.placedObjects.splice(i, 1);
+                    return;
+                }
+            }
+        }
+        
+        updateGhostOrigin() {
+            if (this.activeTool === 'road_h' || this.activeTool === 'road_v') {
+                this.ghostImage.setOrigin(0.5, 0.5);
+            } else {
+                this.ghostImage.setOrigin(0, 0);
+            }
+        }
+        
+        gridToScreen(gridPos) {
+            return { x: HORIZONTAL_PADDING + (gridPos.x * TILE_SIZE), y: gridPos.y * TILE_SIZE };
+        }
+
+        screenToGrid(worldX, worldY) {
+            const gridX = (worldX - HORIZONTAL_PADDING) / TILE_SIZE;
+            const gridY = worldY / TILE_SIZE;
+
+            // ИСПРАВЛЕНО: Логика привязки к сетке
+            if (DECORATION_TOOLS.includes(this.activeTool)) {
+                // Для декораций - никакой привязки, сохраняем точные координаты
+                return { x: gridX, y: gridY };
+            } else if (this.activeTool === 'slot') {
+                // Слоты - строгая привязка к целой клетке
+                return { x: Math.floor(gridX), y: Math.floor(gridY) };
+            } else {
+                // Дороги и прочее - привязка к 1/4 клетки
+                return { x: Math.round(gridX * 4) / 4, y: Math.round(gridY * 4) / 4 };
+            }
+        }
+
+        createUI() {
+            const buttonStyle = { fontSize: '28px', color: '#000000', backgroundColor: '#ffffff', padding: { x: 10, y: 5 }, align: 'center' };
+            const tools = ['slot', 'road_h', 'road_v', ...DECORATION_TOOLS];
+            
+            let yPos = 30;
+            const xPos = 30;
+
+            tools.forEach(tool => {
+                const btn = this.add.text(xPos, yPos, `[${tool}]`, buttonStyle)
+                    .setInteractive({ cursor: 'pointer' })
+                    .setScrollFactor(0)
+                    .setDepth(20000);
+                
+                btn.on('pointerdown', () => { this.activeTool = tool; this.ghostImage.setTexture(tool); this.updateGhostOrigin(); });
+                yPos += 60;
+            });
+
+            const centerX = this.cameras.main.width / 2;
+            const bottomY = this.cameras.main.height - 30;
+            const btnGenerate = this.add.text(centerX, bottomY, 'СКОПИРОВАТЬ КОД', { ...buttonStyle, fontSize: '32px', color: '#ffffff', backgroundColor: '#2ecc71', padding: {x: 20, y: 10} })
+                .setInteractive({ cursor: 'pointer' })
+                .setScrollFactor(0)
+                .setOrigin(0.5, 1)
+                .setDepth(20000);
+
+            btnGenerate.on('pointerdown', () => {
+                let layoutString = 'const cityLayout = [\n';
+                this.placedObjects.sort((a, b) => (a.sprite.depth - b.sprite.depth)); // Сортируем по финальной глубине
+                
+                this.placedObjects.forEach(obj => {
+                    // Округляем до 4 знаков после запятой для чистоты кода
+                    const x = Math.round(obj.gridPos.x * 10000) / 10000;
+                    const y = Math.round(obj.gridPos.y * 10000) / 10000;
+                    layoutString += `    { type: '${obj.type}', gridPos: { x: ${x}, y: ${y} } },\n`;
+                });
+                layoutString += '];';
+                console.log(layoutString);
+                navigator.clipboard.writeText(layoutString);
+                alert('Код скопирован в буфер обмена и выведен в консоль разработчика (F12)!');
+            });
+
+            this.add.text(30, this.cameras.main.height - 30, 'ЛКМ: ставить\nСКМ: двигать\nНавести + DEL: удалить', { ...buttonStyle, fontSize: '20px', backgroundColor: '#34495e', color: '#ecf0f1' })
+                .setScrollFactor(0)
+                .setOrigin(0, 1)
+                .setDepth(20000);
+        }
+    }
+
+    const config = {
+        type: Phaser.AUTO,
+        width: SCREEN_WIDTH,
+        height: 1920,
+        scale: {
+            mode: Phaser.Scale.FIT,
+            autoCenter: Phaser.Scale.CENTER_BOTH
+        },
+        scene: [MapEditorScene]
+    };
+
+    const game = new Phaser.Game(config);
+
+    </script>
+</body>
+</html>
